@@ -1,0 +1,28 @@
+### properties.txt
+### This is the property file used by the PMSHRResults code
+# It's divided into three section:
+#	SECTION 1:  year-agnostic - properties that don't change from year to year
+#	SECTION 2:	year-specific - properties that might change between years
+#	SECTION 3:	year-agnostic - properties that don't change from year to year, but depend on year-specific properties
+
+# Copyright (c) 2024 Bob Upshaw.  This software is covered under the Open Source MIT License 
+
+# Assumes the following macros exist:
+#  SourceData  (this property file or others included can change this macro)
+#  AppDirName
+#  YearBeingProcessed
+#  
+
+########################################################################
+### SECTION 1:	year-agnostic                ###########################
+########################################################################
+
+# get database parameters:
+>include {SourceData}/properties_DB.txt
+
+########################################################################
+### SECTION 2:  year-specific                ###########################
+########################################################################
+
+
+>include {SourceData}/{YearBeingProcessed}-properties.txt

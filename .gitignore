@@ -1,0 +1,28 @@
+# .gitignore for the PMSHRResults project
+
+# ignore Mac-specific directory descriptor file
+.DS_Store
+# ignore Eclipse files
+ # ignore the top level GeneratedFiles, but don't ignore the GeneratedFiles in Historical/
+/GeneratedFiles/*
+!/GeneratedFiles/Support
+# ignore any directory named 'old' - temp backups
+old/
+# ignore top level .csv files
+/*.csv
+# ignore vi temp files
+*.swp
+# DON'T ignore anything in the Historical directory
+!/Historical/*
+# BUT...DO ignore .DS_Store in Historical/
+/Historical/.DS_Store
+# ignore database configuration (passwords, etc.)
+*properties_DB.txt
+# don't save any of the RSIDN files - they contain personal information that we must not
+# store on a public repository
+*[rR][sS][iI][nN][dD]*
+*[rR][sS][iI][dD][nN]*
+# ignore personal notes
+bup-notes/
+# ignore any "private" file named Private* 
+Private*
