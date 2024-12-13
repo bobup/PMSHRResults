@@ -151,6 +151,7 @@ require PMSConstants;
 # internal subroutines
 ####################
 sub GetOWCalendar( $$$ );
+sub InstallHRResultIfNecessary( $$$$$ );
 
 ####################
 # global flags and variables
@@ -158,6 +159,7 @@ sub GetOWCalendar( $$$ );
 
 PMSStruct::GetMacrosRef()->{"currentDateTime"} = $currentDateTime;
 PMSStruct::GetMacrosRef()->{"currentDate"} = $currentDate;
+my $debug = 0;		# will be updated below
 
 # define the generation date, which we rarely have a reason to change from "now", but this and the
 # currentDate can be overridden in the property file below:
@@ -256,6 +258,9 @@ if( $numErrors > 0 ) {
 	exit;
 }
 
+# this is the value of debug we'll use:
+$debug = $PMSConstants::debug;
+
 # make sure our directory name ends with a '/':
 if( $generatedFiles !~ m,/$, ) {
 	$generatedFiles .= "/";
@@ -300,6 +305,11 @@ PMS_MySqlSupport::SetSqlParameters( 'default',
 	PMSStruct::GetMacrosRef()->{"dbName"},
 	PMSStruct::GetMacrosRef()->{"dbUser"},
 	PMSStruct::GetMacrosRef()->{"dbPass"} );
+
+PMSLogging::DumpNote( "", "", "dbHost='" . PMSStruct::GetMacrosRef()->{"dbHost"} . "', " .
+	"dbName='" . PMSStruct::GetMacrosRef()->{"dbName"} . "', " .
+	"dbUser='" . PMSStruct::GetMacrosRef()->{"dbUser"} . "', " .
+	"dbPass='" . PMSStruct::GetMacrosRef()->{"dbPass"} . "'", 1 );
 
 # some initial values could have changed in the above property file, so we're going to
 # re-initialize those values:
@@ -376,6 +386,10 @@ foreach my $key (keys %{$calendarRef}) {
 		# (2) see if these hr result files exist:
 		my $type = "AG";			# we only install the Age Group HR results - those link to overall results
 		my $simpleFileName = "$eventName-cat$cat-$type.html";
+		
+		# normalize the file name:
+		$simpleFileName = PMSUtil::NormalizeFileName( $simpleFileName );
+		
 		if( grep( /^$simpleFileName$/, @files ) ) {
 			# yes - this HR result file has been generated
 			PMSLogging::PrintLog( "", "", "The HR file name '$simpleFileName' exists in the OW Points HR directory.", 0 );
@@ -446,6 +460,11 @@ sub InstallHRResultIfNecessary( $$$$$ ) {
 		PMSLogging::DumpError( "", "", "Found $count instances of '$fileName' installed - TAKE A LOOK AT THIS!!", 1 );
 	} else {
 		PMSLogging::PrintLog( "", "", "Found ZERO instance of '$fileName' installed - INSTALLATION UNDERWAY...", 1 );
+		
+		if( $debug ) {
+			PMSLogging::DumpNote( "", "", "InstallHRResultIfNecessary(): simpleFileName='$simpleFileName', " .
+				"key='$key',\n      hrDirURL='$hrDirURL', owYear='$owYear'", 1 );
+		}
 		# figure out what event_id to use when installing this HR result;
 		my $query2 = "SELECT * FROM `event_titles` WHERE event_type='o' " .
   			"AND obsolete = 0 AND event_title like '%$keyword%'";
@@ -459,7 +478,8 @@ sub InstallHRResultIfNecessary( $$$$$ ) {
 		if( $count == 0 ) {
 			PMSLogging::DumpError( "", "", "Didn't find any event_titles with the title like '$keyword' - INSTALLATION FAILED!!", 1 );
 		} elsif( $count > 1 ) {
-			PMSLogging::DumpError( "", "", "Too many event_titles like '$keyword' - INSTALLATION FAILED!!", 1 );
+			PMSLogging::DumpError( "", "", "Too many ($count is > 1) event_titles like '$keyword' - INSTALLATION FAILED!!", 1 );
+			PMSLogging::DumpNote( "", "", "InstallHRResultIfNecessary(): query used: '$query2'", 1 );
 		} else {
 			my $hrDistance = DistanceForHumans( $distance );
 			#print "Found eventId = $eventId\n";
