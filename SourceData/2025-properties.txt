@@ -1,0 +1,12 @@
+### 2025-properties.txt
+### This is the year-specific property file used by the HRResults program
+
+### NOTE:
+# Assumes this file is included by the general 'properties.txt' file (which defines some macros and also
+#	assumes the existence of other macros.)
+###
+
+
+#####################################################################################################################
+>endoffile
+
