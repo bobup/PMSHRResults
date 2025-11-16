@@ -1,6 +1,10 @@
 #!/usr/bin/perl -w
 
 # HRResults.pl - Manage Human Readable Open Water Results
+# No arguments required, but use -h to see full usage.
+# This program is run on the dev server from the repository directory. 
+# There is no need to install it anywhere special.
+#
 # Beginning in 2024 part of the processing of OW points was the creation of "human readable" 
 # results suitable for posting on the pacific masters Open+Water+Event+Results page. 
 # This removed the burden 
@@ -105,10 +109,11 @@ Usage:
 	[-gGENERATEDFILESDIR]
 	[-h]
 where all arguments are optional:
-	year
-		where year is the year to process
-	-dDebugValue - a value 0 or greater.  The larger the value, the more debug stuff printed to the log
-	-tPROPERTYFILE - the FULL PATH NAME of the property.txt file.  The default is appDirName/properties.txt, where
+	year - the year to process. The default is the current year.
+	-dDebugValue - a value 0 or greater.  The larger the value, the more debug 
+		stuff printed to the log
+	-tPROPERTYFILE - the FULL PATH NAME of the property.txt file.  The default
+		is appDirName/properties.txt, where
 		'appDirName' is the directory holding this script, and
 		'properties.txt' is the name of the properties files for this script.
 	-sSOURCEDATADIR is the full path name of the SourceData directory
@@ -117,6 +122,8 @@ where all arguments are optional:
 
 Handle human readable OW results that are produced by the OW points program but still need to
 be linked to by the Open+Water+Event+Results page on our web site.
+
+
 bup
 ;
 
@@ -309,7 +316,7 @@ PMS_MySqlSupport::SetSqlParameters( 'default',
 PMSLogging::DumpNote( "", "", "dbHost='" . PMSStruct::GetMacrosRef()->{"dbHost"} . "', " .
 	"dbName='" . PMSStruct::GetMacrosRef()->{"dbName"} . "', " .
 	"dbUser='" . PMSStruct::GetMacrosRef()->{"dbUser"} . "', " .
-	"dbPass='" . PMSStruct::GetMacrosRef()->{"dbPass"} . "'", 1 );
+	"dbPass='" . "xxxx" . "'", 1 );		# PMSStruct::GetMacrosRef()->{"dbPass"}
 
 # some initial values could have changed in the above property file, so we're going to
 # re-initialize those values:
@@ -344,6 +351,8 @@ my $hrDirURL = "https://data.pacificmasters.org/points/OWPoints/hrResults/$owYea
 # (1): The @files array will hold the names of all HR files for the $owYear that exist on the PRODUCTION machine.
 my @files = ();
 @files = qx{ ssh pacmasters\@pacmasters.pairserver.com "( ls $hrDirPath )" };
+PMSLogging::PrintLog( "", "", "Here is the directory holding the HR result files on PRODUCTION: $hrDirPath", 0 );
+PMSLogging::PrintLog( "", "", "Here is the URL to the above directory on PRODUCTION: $hrDirURL", 0 );
 PMSLogging::PrintLog( "", "", "Here are the hr files for $owYear so far:\n @files", 0 );
 
 
@@ -444,8 +453,13 @@ sub InstallHRResultIfNecessary( $$$$$ ) {
 	# strict you want to be. 
 	my $fileName = $simpleFileNameNoExtension;
 
+	# prepare for database use:
+	my $ESCFileName = PMS_MySqlSupport::MySqlEscape( $fileName );
+	my $ESCFullURL = PMS_MySqlSupport::MySqlEscape( $fullURL );
+#	PMSLogging::PrintLog( "", "", "ESCaped filename: '$ESCFileName', ESCaped URL: '$ESCFullURL'", 0 );
+
 	# is this HR result file installed in our results_ow production database?
-	my $query1 = "SELECT * FROM `results_ow` WHERE `results_file` LIKE '%$fileName%' " .
+	my $query1 = "SELECT * FROM `results_ow` WHERE `results_file` LIKE '%$ESCFileName%' " .
 		"AND event_date LIKE '%$owYear-%'";
 	my( $sth, $rv ) = PMS_MySqlSupport::PrepareAndExecute( $dbh, $query1 );
 	my $count = 0;
@@ -488,7 +502,7 @@ sub InstallHRResultIfNecessary( $$$$$ ) {
 			my $query3 = "INSERT INTO results_ow " .
 				"(event_id, event_date, category, distance, results_type, results_file, remote) " .
 				" VALUES " .
-				"($eventId, '$eventDate', 'Cat $category', '$hrDistance', 'Age Group+Overall', '$fullURL', 1)";
+				"($eventId, '$eventDate', 'Cat $category', '$hrDistance', 'Age Group+Overall', '$ESCFullURL', 1)";
 			#print "Install HR results: `$query3`\n";
 			my( $sth3, $rv3 ) = PMS_MySqlSupport::PrepareAndExecute( $dbh, $query3 );
 		}
