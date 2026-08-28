@@ -27,6 +27,10 @@
 # Note; we only install the Age Group HR results since each of those has a link to the Overall HR results for 
 #	the same event.
 #
+# The normal way to run this:
+#	% cd ~/Automation/PMSHRResults/Code/
+#	% ./HRResults.pl
+#
 # Copyright (c) 2024 Bob Upshaw.  This software is covered under the Open Source MIT License 
 
 ####################
@@ -39,6 +43,8 @@ my $appProgName;	# name of the program we're running
 my $appDirName;     # directory containing the application we're running
 my $appRootDir;		# directory containing the appDirName directory
 my $sourceData;		# full path of directory containing the "source data" which we process to create the generated files
+#!!!! NOTE: I DON'T THINK $sourceData is actually used...!!!
+
 my $dateTimeFormat;
 my $currentDateTime;	# the date/time we start this application
 my $yearFormat;
@@ -84,7 +90,7 @@ BEGIN {
 	$appDirName = abs_path( $appDirName );		# now we're sure it begins with a '/'
 
 	# The 'appRootDir' is the parent directory of the appDirName:
-	$appRootDir = dirname($appDirName);		# e.g. /Users/bobup/Development/PacificMasters/PMSOWPoints/
+	$appRootDir = dirname($appDirName);		# e.g. /Users/bobup/Development/PacificMasters/PMSHRResults/
 	die( "${appProgName}:: The parent directory of '$appDirName' is not a directory! (A permission problem?)" )
 		if( !-d $appRootDir );
 	
@@ -105,7 +111,7 @@ Usage:
 	$appProgName [year]
 	[-dDebugValue]
 	[-tPROPERTYFILE]
-	[-sSOURCEDATADIR]
+	[-sSOURCEDATADIR]  --- is this actually used?
 	[-gGENERATEDFILESDIR]
 	[-h]
 where all arguments are optional:
@@ -388,6 +394,7 @@ foreach my $key (keys %{$calendarRef}) {
 		# if there are no results for this event yet then we have not yet generated any HR results, 
 		# so in that case skip this event:
 		next if( $fileName eq "NO RESULTS");
+		next if( $fileName eq "NO DETAILS");
 		
 		my $cat = $calendarRef->{"$key-CAT"};
 		my $eventName = $calendarRef->{"$key-EventName"};
